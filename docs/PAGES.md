@@ -11,7 +11,7 @@ Hər səhifənin hansı `financeos-core` endpoint(lər)inə bağlı olduğunu g�
 | Ledger | `/ledger` | `GET /ledger/entries`, `POST /ledger/record-income`, `POST /ledger/record-expense`, `POST /ledger/transfer`, `POST /ledger/adjust-balance`, `POST /ledger/reconcile`, `GET /categories` (kateqoriya seçimi üçün) | Tətbiq olundu (Slice 2) |
 | Categories | `/categories` | `GET /categories`, `POST /categories` | Tətbiq olundu (Slice 3) |
 | Budget | `/budget` | `GET /budgets/templates`, `POST /budgets`, `GET /budgets`, `GET /budgets/:id/check`, `POST /budgets/:id/priority`, `POST /budgets/:id/deactivate` | Tətbiq olundu (Slice 4) — `GET /budgets/:id` (tək büdcə detalı) istifadə olunmur, siyahı kifayətdir |
-| Goals | `/goals` | `POST /goals`, `GET /goals`, `GET /goals/:id`, `POST /goals/:id/complete`, `POST /goals/:id/abandon` | Növbəti slice |
+| Goals | `/goals` | `POST /goals`, `GET /goals`, `POST /goals/:id/complete`, `POST /goals/:id/abandon` | Tətbiq olundu (Slice 5) — `GET /goals/:id` istifadə olunmur, siyahı kifayətdir |
 | Net Worth Timeline | `/dashboard` (əlavə tab) | `GET /net-worth/timeline`, `GET /net-worth/category-summary` | Növbəti slice |
 | FX Rates | `/settings/fx-rates` | `GET /fx-rates`, `POST /fx-rates` | Növbəti slice |
 | Settings — hesab | `/settings` | `GET /auth/me`, `POST /auth/deactivate`, `POST /auth/delete-data` | Növbəti slice |
