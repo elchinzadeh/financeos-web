@@ -14,7 +14,7 @@ const LINKS = [
   { href: '/categories', label: 'Kateqoriyalar' },
   { href: '/budget', label: 'Büdcə' },
   { href: '/goals', label: 'Hədəflər' },
-  { href: '/settings', label: 'Ayarlar', soon: true },
+  { href: '/settings', label: 'Ayarlar' },
 ];
 
 export function Nav() {
@@ -34,24 +34,18 @@ export function Nav() {
     <nav className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3">
       <div className="flex items-center gap-4">
         <span className="text-sm font-semibold text-zinc-900">FinanceOS</span>
-        {LINKS.map((link) =>
-          link.soon ? (
-            <span key={link.href} className="text-sm text-zinc-300" title="Tezliklə">
-              {link.label}
-            </span>
-          ) : (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={clsx(
-                'text-sm text-zinc-600 hover:text-zinc-900',
-                pathname?.startsWith(link.href) && 'font-medium text-zinc-900',
-              )}
-            >
-              {link.label}
-            </Link>
-          ),
-        )}
+        {LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={clsx(
+              'text-sm text-zinc-600 hover:text-zinc-900',
+              pathname?.startsWith(link.href) && 'font-medium text-zinc-900',
+            )}
+          >
+            {link.label}
+          </Link>
+        ))}
       </div>
       <div className="flex items-center gap-3">
         {user && <span className="text-sm text-zinc-500">{user.email}</span>}

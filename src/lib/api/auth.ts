@@ -54,3 +54,11 @@ export function logout(token: string): Promise<{ ok: true }> {
 export function me(token: string): Promise<MeResponse> {
   return apiFetch<MeResponse>('/auth/me', { token });
 }
+
+export function deactivateAccount(token: string, password: string): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>('/auth/deactivate', { method: 'POST', token, body: { password } });
+}
+
+export function deleteAllData(token: string, password: string): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>('/auth/delete-data', { method: 'POST', token, body: { password } });
+}
