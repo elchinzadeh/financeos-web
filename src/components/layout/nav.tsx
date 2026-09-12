@@ -12,7 +12,7 @@ const LINKS = [
   { href: '/accounts', label: 'Hesablar' },
   { href: '/ledger', label: 'Əməliyyatlar' },
   { href: '/categories', label: 'Kateqoriyalar' },
-  { href: '/budget', label: 'Büdcə', soon: true },
+  { href: '/budget', label: 'Büdcə' },
   { href: '/goals', label: 'Hədəflər', soon: true },
   { href: '/settings', label: 'Ayarlar', soon: true },
 ];
