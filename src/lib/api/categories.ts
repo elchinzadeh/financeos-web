@@ -14,3 +14,10 @@ export interface Category {
 export function listCategories(token: string): Promise<Category[]> {
   return apiFetch<Category[]>('/categories', { token });
 }
+
+export function createCategory(
+  token: string,
+  input: { name: string; kind: CategoryKind; parentId?: string; icon?: string },
+): Promise<Category> {
+  return apiFetch<Category>('/categories', { method: 'POST', token, body: input });
+}

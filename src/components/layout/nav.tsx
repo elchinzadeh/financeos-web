@@ -11,6 +11,7 @@ const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/accounts', label: 'Hesablar' },
   { href: '/ledger', label: 'Əməliyyatlar' },
+  { href: '/categories', label: 'Kateqoriyalar' },
   { href: '/budget', label: 'Büdcə', soon: true },
   { href: '/goals', label: 'Hədəflər', soon: true },
   { href: '/settings', label: 'Ayarlar', soon: true },

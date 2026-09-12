@@ -9,7 +9,7 @@ Bu fayl status lövhəsidir, changelog deyil (dəyişikliklərin tarixçəsi ü�
 | Layihə scaffold-u | Tətbiq olundu | `pnpm create next-app` — Next.js (App Router, TS, Tailwind, ESLint), bax `docs/decisions/0001-frontend-foundation.md` |
 | Slice 1: Auth + Dashboard + Accounts | Tətbiq olundu | Login/Register, `AuthContext`, Dashboard (`GET /net-worth`), Accounts (list/open/archive). Bax `docs/PAGES.md` |
 | Slice 2: Ledger | Tətbiq olundu | Əməliyyat siyahısı + gəlir/xərc/transfer/adjust formaları + reconcile. Bax `docs/PAGES.md` |
-| Slice 3: Categories | Başlanmayıb | |
+| Slice 3: Categories | Tətbiq olundu | Gəlir/Xərc sütunları (sistem+öz), yeni kateqoriya forması (valideyn seçimi ilə). Bax `docs/PAGES.md` |
 | Slice 4: Budget | Başlanmayıb | |
 | Slice 5: Goals | Başlanmayıb | |
 | Slice 6: Settings (FX rates, deaktivasiya/silmə) | Başlanmayıb | |
@@ -28,11 +28,13 @@ Bu fayl status lövhəsidir, changelog deyil (dəyişikliklərin tarixçəsi ü�
 - [x] Slice 1 yoxlama: `pnpm build`/`lint` təmiz, backend `:3000` + frontend `:3001` paralel işə salınıb, register→open-account→net-worth axını real sorğularla təsdiqləndi (backend cavabları frontend-in `lib/api` tipləri ilə eynidir), CORS preflight yoxlanıldı, test datası silindi
 - [ ] Tam brauzer click-through testi (bu sessiyada hər iki slice API-səviyyəli yoxlanıldı, real brauzer sessiyası hələ yoxlanılmayıb)
 - [x] Slice 2: Ledger — `lib/api/{ledger,categories}.ts`, gəlir/xərc/transfer/düzəliş formaları, əməliyyat cədvəli, hesab filtri, reconcile düyməsi
+- [x] Slice 3: Categories — `createCategory()`, Gəlir/Xərc sütunları, yeni kateqoriya forması, nav-a link əlavə olundu
 
 ## Log
 
 *(ən yenisi əvvəldə — sessiya/qərar başına bir sətir, aidiyyatı olan ADR-ə keçid ver)*
 
+- Slice 3 (Categories) tətbiq olundu: `lib/api/categories.ts`-ə `createCategory()` əlavə olundu. `/categories` səhifəsi: Gəlir/Xərc iki sütun (sistem kateqoriyalar "sistem" etiketi ilə), "Yeni kateqoriya" forması (ad, kind, valideyn seçimi — yalnız seçilmiş kind-dəki mövcud kateqoriyalar, `useWatch` ilə reaktiv filtrlənir, icon istəyə görə). Nav-a "Kateqoriyalar" linki əlavə olundu. `pnpm build`/`lint` təmiz. Backend+frontend paralel, seed edilmiş 8 sistem kateqoriyası + valideynli yeni kateqoriya yaratma + uyğunsuz `kind`-lə valideyn seçəndə 400 gözləndiyi kimi curl ilə yoxlanıldı, test datası silindi.
 - Slice 2 (Ledger) tətbiq olundu: `lib/api/ledger.ts` (`listEntries`, `recordIncome`, `recordExpense`, `transfer`, `adjustBalance`, `reconcile`), `lib/api/categories.ts` (`listCategories`). `/ledger` səhifəsi: hesab filtri, 4 tab-lı forma (Gəlir/Xərc — ortaq `EntryForm`, kateqoriya `kind`-ə görə filtrlənir; Transfer; Düzəliş), əməliyyat cədvəli (hesab/kateqoriya adları `accounts`/`categories` siyahıları ilə join edilir), "Balansı yenidən hesabla" düyməsi. Uğurlu mutasiyalardan sonra `['ledger-entries']`+`['accounts']`+`['net-worth']` invalidasiya olunur. `pnpm build`/`lint` təmiz. Backend+frontend paralel işə salınıb, iki hesab + gəlir/xərc(kateqoriyalı)/transfer/adjust/reconcile tam axını curl ilə yoxlanıldı, balanslar gözlənilən qiymətlərlə üst-üstə düşdü, test datası silindi.
 - Slice 1 tətbiq olundu: `lib/api/{client,auth,accounts,net-worth}.ts` (backend DTO-larının əl ilə güzgüsü, bax `docs/decisions/0001-frontend-foundation.md`), `AuthContext` (localStorage token + `/auth/me` doğrulaması, 401-də avtomatik logout), Login/Register formaları (`react-hook-form`+`zod`), qorunan `(app)` shell + nav, Dashboard (`GET /net-worth`), Accounts (list/open/archive, TanStack Query ilə invalidasiya). `pnpm build`/`lint` təmiz. Backend+frontend paralel işə salınıb, real register→open-account→net-worth axını curl ilə (frontend-in çağırdığı eyni endpoint/format) yoxlanıldı, CORS preflight təsdiqləndi, test datası `POST /auth/delete-data` ilə təmizləndi.
 - Layihə scaffold edildi (Next.js 16, App Router, TS, Tailwind, ESLint, pnpm), frontend context sənədləri yaradıldı: `CLAUDE.md`, `.claude/rules/api-integration.md`, `.claude/rules/ui-conventions.md`, `docs/decisions/0001-frontend-foundation.md`, `docs/PAGES.md`. Backend-də bu seçimin tələb etdiyi yeganə dəyişiklik (CORS) `financeos-core`-un öz `docs/decisions/0014-cors-for-web-client.md`-də sənədləşdirilib.
