@@ -8,7 +8,7 @@ Hər səhifənin hansı `financeos-core` endpoint(lər)inə bağlı olduğunu g�
 | Register | `/register` | `POST /auth/register` | Planlaşdırılıb (Slice 1) |
 | Dashboard | `/dashboard` | `GET /net-worth` | Planlaşdırılıb (Slice 1) |
 | Accounts | `/accounts` | `GET /accounts`, `POST /accounts`, `POST /accounts/:id/archive` | Planlaşdırılıb (Slice 1) |
-| Ledger | `/ledger` | `GET /ledger/entries`, `POST /ledger/record-income`, `POST /ledger/record-expense`, `POST /ledger/transfer`, `POST /ledger/adjust-balance`, `POST /ledger/reconcile` | Növbəti slice |
+| Ledger | `/ledger` | `GET /ledger/entries`, `POST /ledger/record-income`, `POST /ledger/record-expense`, `POST /ledger/transfer`, `POST /ledger/adjust-balance`, `POST /ledger/reconcile`, `GET /categories` (kateqoriya seçimi üçün) | Tətbiq olundu (Slice 2) |
 | Categories | `/categories` | `GET /categories`, `POST /categories` | Növbəti slice |
 | Budget | `/budget` | `GET /budgets/templates`, `POST /budgets`, `GET /budgets`, `GET /budgets/:id`, `GET /budgets/:id/check`, `POST /budgets/:id/priority`, `POST /budgets/:id/deactivate` | Növbəti slice |
 | Goals | `/goals` | `POST /goals`, `GET /goals`, `GET /goals/:id`, `POST /goals/:id/complete`, `POST /goals/:id/abandon` | Növbəti slice |
