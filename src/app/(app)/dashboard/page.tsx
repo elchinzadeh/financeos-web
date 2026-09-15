@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { getNetWorth } from '@/lib/api/net-worth';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
+import { InfoNote } from '@/components/ui/info-note';
 import { ApiError } from '@/lib/api/client';
 
 export default function DashboardPage() {
@@ -18,6 +19,10 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-zinc-900">Xalis dəyər</h1>
+      <InfoNote>
+        Bütün aktiv hesablarınızın baza valyutaya çevrilmiş cari dəyəri (xalis dəyər). Yeni hesab əlavə etmək üçün
+        yuxarıdakı naviqasiyadan &quot;Hesablar&quot; səhifəsinə keçin.
+      </InfoNote>
 
       {isLoading && <p className="text-sm text-zinc-400">Yüklənir...</p>}
       {error && <ErrorText>{error instanceof ApiError ? error.message : 'Xəta baş verdi'}</ErrorText>}

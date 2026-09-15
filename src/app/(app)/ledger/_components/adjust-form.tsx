@@ -10,6 +10,7 @@ import type { AccountWithBalance } from '@/lib/api/accounts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
 
 const schema = z.object({
   accountId: z.string().min(1, 'Hesab seçin'),
@@ -48,18 +49,22 @@ export function AdjustForm({ token, accounts }: { token: string; accounts: Accou
       onSubmit={handleSubmit((values) => mutation.mutate(values))}
       className="flex flex-wrap items-start gap-3"
     >
-      <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('accountId')}>
-        {accounts.map((acc) => (
-          <option key={acc.id} value={acc.id}>
-            {acc.name} ({acc.currency})
-          </option>
-        ))}
-      </select>
-      <div>
-        <Input placeholder="Düzəliş (məs. -12.50)" {...register('delta')} />
+      <Field label="Hesab">
+        <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('accountId')}>
+          {accounts.map((acc) => (
+            <option key={acc.id} value={acc.id}>
+              {acc.name} ({acc.currency})
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Düzəliş (işarəli)">
+        <Input placeholder="məs. -12.50" {...register('delta')} />
         <ErrorText>{errors.delta?.message}</ErrorText>
-      </div>
-      <Input placeholder="Qeyd (istəyə görə)" {...register('note')} />
+      </Field>
+      <Field label="Qeyd (istəyə görə)">
+        <Input placeholder="məs. Bank komissiyası" {...register('note')} />
+      </Field>
       <Button type="submit" disabled={isSubmitting || accounts.length === 0}>
         {isSubmitting ? 'Yadda saxlanır...' : 'Balansı düzəlt'}
       </Button>

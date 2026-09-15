@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
 
 function ConfirmActionForm({
   title,
@@ -37,14 +38,16 @@ function ConfirmActionForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
       <p className="text-sm font-medium text-zinc-900">{title}</p>
       <p className="text-xs text-zinc-500">{description}</p>
-      <div className="flex gap-2">
-        <Input
-          type="password"
-          placeholder="Parol"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+      <div className="flex items-end gap-2">
+        <Field label="Parol">
+          <Input
+            type="password"
+            placeholder="Parolunuz"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </Field>
         <Button type="submit" variant="danger">
           {buttonLabel}
         </Button>

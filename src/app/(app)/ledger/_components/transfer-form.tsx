@@ -10,6 +10,7 @@ import type { AccountWithBalance } from '@/lib/api/accounts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
 
 const schema = z
   .object({
@@ -54,15 +55,17 @@ export function TransferForm({ token, accounts }: { token: string; accounts: Acc
       onSubmit={handleSubmit((values) => mutation.mutate(values))}
       className="flex flex-wrap items-start gap-3"
     >
-      <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('fromAccountId')}>
-        {accounts.map((acc) => (
-          <option key={acc.id} value={acc.id}>
-            {acc.name} ({acc.currency})
-          </option>
-        ))}
-      </select>
+      <Field label="Mənbə hesab">
+        <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('fromAccountId')}>
+          {accounts.map((acc) => (
+            <option key={acc.id} value={acc.id}>
+              {acc.name} ({acc.currency})
+            </option>
+          ))}
+        </select>
+      </Field>
       <span className="self-center text-sm text-zinc-400">→</span>
-      <div>
+      <Field label="Hədəf hesab">
         <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('toAccountId')}>
           {accounts.map((acc) => (
             <option key={acc.id} value={acc.id}>
@@ -71,12 +74,14 @@ export function TransferForm({ token, accounts }: { token: string; accounts: Acc
           ))}
         </select>
         <ErrorText>{errors.toAccountId?.message}</ErrorText>
-      </div>
-      <div>
-        <Input placeholder="Məbləğ (mənbə valyutasında)" {...register('amount')} />
+      </Field>
+      <Field label="Məbləğ (mənbə valyutasında)">
+        <Input placeholder="məs. 100.00" {...register('amount')} />
         <ErrorText>{errors.amount?.message}</ErrorText>
-      </div>
-      <Input placeholder="Qeyd (istəyə görə)" {...register('note')} />
+      </Field>
+      <Field label="Qeyd (istəyə görə)">
+        <Input placeholder="məs. Yığım" {...register('note')} />
+      </Field>
       <Button type="submit" disabled={isSubmitting || accounts.length < 2}>
         {isSubmitting ? 'Yadda saxlanır...' : 'Köçür'}
       </Button>

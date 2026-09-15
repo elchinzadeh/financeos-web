@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/auth/auth-context';
 import { Card } from '@/components/ui/card';
+import { InfoNote } from '@/components/ui/info-note';
 import { FxRatesSection } from './_components/fx-rates-section';
 import { DangerZone } from './_components/danger-zone';
 
@@ -11,6 +12,10 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-zinc-900">Ayarlar</h1>
+      <InfoNote>
+        Hesab məlumatınıza baxın, xarici valyuta məzənnələrini (FX kursları) əl ilə əlavə/yeniləyin. &quot;Təhlükəli
+        Zona&quot;dakı əməliyyatlar (deaktivasiya, data silinməsi) geri dönməzdir — hər ikisi parol təsdiqi tələb edir.
+      </InfoNote>
 
       <Card>
         <h2 className="mb-3 text-sm font-medium text-zinc-900">Hesab məlumatı</h2>

@@ -6,6 +6,7 @@ import { listBudgets } from '@/lib/api/budget';
 import { listCategories } from '@/lib/api/categories';
 import { ApiError } from '@/lib/api/client';
 import { ErrorText } from '@/components/ui/error-text';
+import { InfoNote } from '@/components/ui/info-note';
 import { CreateBudgetForm } from './_components/create-budget-form';
 import { BudgetCard } from './_components/budget-card';
 
@@ -26,6 +27,11 @@ export default function BudgetPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-zinc-900">Büdcə</h1>
+      <InfoNote>
+        Aylıq gəlirinizin faizini xərc kateqoriyalarına ayırın (hazır şablondan başlaya, ya da xüsusi bölgü qura
+        bilərsiniz). Yaratdıqdan sonra hər büdcə kartında &quot;Yoxla&quot; düyməsi cari dövrdə hansı kateqoriyaların
+        limitini aşdığınızı göstərir.
+      </InfoNote>
 
       <CreateBudgetForm token={token!} />
 

@@ -8,6 +8,7 @@ import { listGoals, type GoalStatus } from '@/lib/api/goals';
 import { listAccounts } from '@/lib/api/accounts';
 import { ApiError } from '@/lib/api/client';
 import { ErrorText } from '@/components/ui/error-text';
+import { InfoNote } from '@/components/ui/info-note';
 import { GoalForm } from './_components/goal-form';
 import { GoalCard } from './_components/goal-card';
 
@@ -36,6 +37,11 @@ export default function GoalsPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-zinc-900">Hədəflər</h1>
+      <InfoNote>
+        Yığım hədəfləri qoyun (məs. &quot;Ehtiyat fond&quot;). Hədəfi bir hesaba bağlasanız, tərəqqi həmin hesabın
+        balansından avtomatik hesablanır. Hədəfə çatanda &quot;Tamamla&quot;, imtina etsəniz &quot;İmtina et&quot;
+        düyməsini basın.
+      </InfoNote>
 
       <GoalForm
         token={token!}

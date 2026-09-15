@@ -11,6 +11,7 @@ import type { Category } from '@/lib/api/categories';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
 
 const schema = z.object({
   accountId: z.string().min(1, 'Hesab seçin'),
@@ -68,26 +69,32 @@ export function EntryForm({
       onSubmit={handleSubmit((values) => mutation.mutate(values))}
       className="flex flex-wrap items-start gap-3"
     >
-      <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('accountId')}>
-        {accounts.map((acc) => (
-          <option key={acc.id} value={acc.id}>
-            {acc.name} ({acc.currency})
-          </option>
-        ))}
-      </select>
-      <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('categoryId')}>
-        <option value="">Kateqoriyasız</option>
-        {filteredCategories.map((cat) => (
-          <option key={cat.id} value={cat.id}>
-            {cat.name}
-          </option>
-        ))}
-      </select>
-      <div>
-        <Input placeholder="Məbləğ" {...register('amount')} />
+      <Field label="Hesab">
+        <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('accountId')}>
+          {accounts.map((acc) => (
+            <option key={acc.id} value={acc.id}>
+              {acc.name} ({acc.currency})
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Kateqoriya">
+        <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('categoryId')}>
+          <option value="">Kateqoriyasız</option>
+          {filteredCategories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Məbləğ">
+        <Input placeholder="məs. 45.90" {...register('amount')} />
         <ErrorText>{errors.amount?.message}</ErrorText>
-      </div>
-      <Input placeholder="Qeyd (istəyə görə)" {...register('note')} />
+      </Field>
+      <Field label="Qeyd (istəyə görə)">
+        <Input placeholder="məs. Market" {...register('note')} />
+      </Field>
       <Button type="submit" disabled={isSubmitting || accounts.length === 0}>
         {isSubmitting ? 'Yadda saxlanır...' : kind === 'income' ? 'Gəlir qeyd et' : 'Xərc qeyd et'}
       </Button>

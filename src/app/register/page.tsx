@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
+import { InfoNote } from '@/components/ui/info-note';
 
 const schema = z.object({
   email: z.email('Düzgün email daxil edin'),
@@ -50,20 +52,24 @@ export default function RegisterPage() {
   return (
     <div className="flex flex-1 items-center justify-center px-4">
       <Card className="w-full max-w-sm">
-        <h1 className="mb-4 text-lg font-semibold text-zinc-900">Qeydiyyat</h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-          <div>
-            <Input type="email" placeholder="Email" {...registerField('email')} />
+        <h1 className="mb-2 text-lg font-semibold text-zinc-900">Qeydiyyat</h1>
+        <InfoNote>
+          Email, ən azı 8 simvoldan ibarət parol və baza valyutanızı (bütün hesablarınızın ümumi dəyəri bu valyutada
+          göstəriləcək, məs. AZN) daxil edin.
+        </InfoNote>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex flex-col gap-3">
+          <Field label="Email">
+            <Input type="email" placeholder="siz@example.com" {...registerField('email')} />
             <ErrorText>{errors.email?.message}</ErrorText>
-          </div>
-          <div>
-            <Input type="password" placeholder="Parol (ən azı 8 simvol)" {...registerField('password')} />
+          </Field>
+          <Field label="Parol">
+            <Input type="password" placeholder="ən azı 8 simvol" {...registerField('password')} />
             <ErrorText>{errors.password?.message}</ErrorText>
-          </div>
-          <div>
-            <Input placeholder="Baza valyuta (məs. AZN)" {...registerField('baseCurrency')} />
+          </Field>
+          <Field label="Baza valyuta">
+            <Input placeholder="məs. AZN" {...registerField('baseCurrency')} />
             <ErrorText>{errors.baseCurrency?.message}</ErrorText>
-          </div>
+          </Field>
           <ErrorText>{formError}</ErrorText>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Yüklənir...' : 'Qeydiyyatdan keç'}

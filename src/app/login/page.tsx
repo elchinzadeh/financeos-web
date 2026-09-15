@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
+import { InfoNote } from '@/components/ui/info-note';
 
 const schema = z.object({
   email: z.email('Düzgün email daxil edin'),
@@ -45,16 +47,20 @@ export default function LoginPage() {
   return (
     <div className="flex flex-1 items-center justify-center px-4">
       <Card className="w-full max-w-sm">
-        <h1 className="mb-4 text-lg font-semibold text-zinc-900">Giriş</h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-          <div>
-            <Input type="email" placeholder="Email" {...register('email')} />
+        <h1 className="mb-2 text-lg font-semibold text-zinc-900">Giriş</h1>
+        <InfoNote>
+          Mövcud email və parolunuzla daxil olun. Hesabınız yoxdursa, aşağıdakı &quot;Qeydiyyat&quot; linkindən yeni
+          hesab yarada bilərsiniz.
+        </InfoNote>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex flex-col gap-3">
+          <Field label="Email">
+            <Input type="email" placeholder="siz@example.com" {...register('email')} />
             <ErrorText>{errors.email?.message}</ErrorText>
-          </div>
-          <div>
+          </Field>
+          <Field label="Parol">
             <Input type="password" placeholder="Parol" {...register('password')} />
             <ErrorText>{errors.password?.message}</ErrorText>
-          </div>
+          </Field>
           <ErrorText>{formError}</ErrorText>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Yüklənir...' : 'Daxil ol'}

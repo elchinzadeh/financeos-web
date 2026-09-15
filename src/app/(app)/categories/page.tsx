@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
+import { InfoNote } from '@/components/ui/info-note';
 
 const schema = z.object({
   name: z.string().min(1, 'Ad tələb olunur'),
@@ -83,6 +85,11 @@ export default function CategoriesPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-zinc-900">Kateqoriyalar</h1>
+      <InfoNote>
+        Gəlir/xərclərinizi qruplaşdırmaq üçün kateqoriyalar. Sistem tərəfindən əvvəlcədən təyin olunmuş
+        kateqoriyalar (&quot;sistem&quot; etiketli) hər kəs üçün ortaqdır; öz kateqoriyanızı əlavə edərkən istəsəniz
+        mövcud kateqoriyanı valideyn seçə bilərsiniz.
+      </InfoNote>
 
       <Card>
         <h2 className="mb-3 text-sm font-medium text-zinc-900">Yeni kateqoriya</h2>
@@ -90,23 +97,29 @@ export default function CategoriesPage() {
           onSubmit={handleSubmit((values) => mutation.mutate(values))}
           className="flex flex-wrap items-start gap-3"
         >
-          <div>
-            <Input placeholder="Ad" {...register('name')} />
+          <Field label="Ad">
+            <Input placeholder="məs. Kitablar" {...register('name')} />
             <ErrorText>{errors.name?.message}</ErrorText>
-          </div>
-          <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('kind')}>
-            <option value="expense">Xərc</option>
-            <option value="income">Gəlir</option>
-          </select>
-          <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('parentId')}>
-            <option value="">Valideyn yoxdur</option>
-            {parentOptions.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <Input placeholder="İkon (istəyə görə, məs. 📚)" className="w-40" {...register('icon')} />
+          </Field>
+          <Field label="Növ">
+            <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('kind')}>
+              <option value="expense">Xərc</option>
+              <option value="income">Gəlir</option>
+            </select>
+          </Field>
+          <Field label="Valideyn (istəyə görə)">
+            <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('parentId')}>
+              <option value="">Valideyn yoxdur</option>
+              {parentOptions.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="İkon (istəyə görə)">
+            <Input placeholder="məs. 📚" className="w-40" {...register('icon')} />
+          </Field>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Əlavə olunur...' : 'Əlavə et'}
           </Button>

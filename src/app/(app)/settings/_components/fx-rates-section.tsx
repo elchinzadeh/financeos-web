@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
 
 const schema = z.object({
   baseCurrency: z.string().length(3, 'ISO 4217 kodu, məs. USD'),
@@ -52,19 +53,21 @@ export function FxRatesSection({ token }: { token: string }) {
         onSubmit={handleSubmit((values) => mutation.mutate(values))}
         className="flex flex-wrap items-start gap-3"
       >
-        <div>
-          <Input placeholder="Baza (məs. USD)" className="w-28" {...register('baseCurrency')} />
+        <Field label="Baza valyuta">
+          <Input placeholder="məs. USD" className="w-28" {...register('baseCurrency')} />
           <ErrorText>{errors.baseCurrency?.message}</ErrorText>
-        </div>
-        <div>
-          <Input placeholder="Kotirovka (məs. AZN)" className="w-28" {...register('quoteCurrency')} />
+        </Field>
+        <Field label="Kotirovka valyuta">
+          <Input placeholder="məs. AZN" className="w-28" {...register('quoteCurrency')} />
           <ErrorText>{errors.quoteCurrency?.message}</ErrorText>
-        </div>
-        <div>
-          <Input placeholder="Kurs" className="w-28" {...register('rate')} />
+        </Field>
+        <Field label="Kurs">
+          <Input placeholder="məs. 1.7000" className="w-28" {...register('rate')} />
           <ErrorText>{errors.rate?.message}</ErrorText>
-        </div>
-        <Input type="date" {...register('rateDate')} />
+        </Field>
+        <Field label="Tarix (istəyə görə, default bugün)">
+          <Input type="date" {...register('rateDate')} />
+        </Field>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saxlanır...' : 'Əlavə et / yenilə'}
         </Button>

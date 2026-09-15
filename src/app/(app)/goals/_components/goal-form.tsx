@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
+import { Field } from '@/components/ui/field';
 
 const schema = z.object({
   name: z.string().min(1, 'Ad tələb olunur'),
@@ -65,27 +66,31 @@ export function GoalForm({
         onSubmit={handleSubmit((values) => mutation.mutate(values))}
         className="flex flex-wrap items-start gap-3"
       >
-        <div>
-          <Input placeholder="Ad" {...register('name')} />
+        <Field label="Ad">
+          <Input placeholder="məs. Ehtiyat fond" {...register('name')} />
           <ErrorText>{errors.name?.message}</ErrorText>
-        </div>
-        <div>
-          <Input placeholder="Hədəf məbləği" {...register('targetAmount')} />
+        </Field>
+        <Field label="Hədəf məbləği">
+          <Input placeholder="məs. 5000.00" {...register('targetAmount')} />
           <ErrorText>{errors.targetAmount?.message}</ErrorText>
-        </div>
-        <div>
-          <Input placeholder="Valyuta" className="w-24" {...register('targetCurrency')} />
+        </Field>
+        <Field label="Valyuta">
+          <Input placeholder="məs. AZN" className="w-24" {...register('targetCurrency')} />
           <ErrorText>{errors.targetCurrency?.message}</ErrorText>
-        </div>
-        <Input type="date" {...register('targetDate')} />
-        <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('linkedAccountId')}>
-          <option value="">Bağlı hesab yoxdur</option>
-          {accounts.map((acc) => (
-            <option key={acc.id} value={acc.id}>
-              {acc.name} ({acc.currency})
-            </option>
-          ))}
-        </select>
+        </Field>
+        <Field label="Hədəf tarixi (istəyə görə)">
+          <Input type="date" {...register('targetDate')} />
+        </Field>
+        <Field label="Bağlı hesab (istəyə görə)">
+          <select className="rounded-md border border-zinc-300 px-3 py-2 text-sm" {...register('linkedAccountId')}>
+            <option value="">Bağlı hesab yoxdur</option>
+            {accounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name} ({acc.currency})
+              </option>
+            ))}
+          </select>
+        </Field>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Yadda saxlanır...' : 'Hədəf yarat'}
         </Button>
