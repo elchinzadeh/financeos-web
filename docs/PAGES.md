@@ -6,6 +6,8 @@ Hər səhifənin hansı `financeos-core` endpoint(lər)inə bağlı olduğunu g�
 |---|---|---|---|
 | Login | `/login` | `POST /auth/login` | Planlaşdırılıb (Slice 1) |
 | Register | `/register` | `POST /auth/register` | Planlaşdırılıb (Slice 1) |
+| Forgot Password | `/forgot-password` | `POST /auth/forgot-password` | Tətbiq olundu — email mövcud olsun-olmasın eyni mesaj göstərir (sızdırmama, bax `financeos-core/docs/decisions/0019-email-infrastructure.md`) |
+| Reset Password | `/reset-password?token=...` | `POST /auth/reset-password` | Tətbiq olundu — `useSearchParams` ilə token oxunur (layihədə ilk istifadə, `<Suspense>` daxilində) |
 | Dashboard | `/dashboard` | `GET /net-worth` | Planlaşdırılıb (Slice 1) |
 | Accounts | `/accounts` | `GET /accounts`, `POST /accounts`, `POST /accounts/:id/archive` | Planlaşdırılıb (Slice 1) |
 | Ledger | `/ledger` | `GET /ledger/entries`, `POST /ledger/record-income`, `POST /ledger/record-expense`, `POST /ledger/transfer`, `POST /ledger/adjust-balance`, `POST /ledger/reconcile`, `GET /categories` (kateqoriya seçimi üçün) | Tətbiq olundu (Slice 2) |

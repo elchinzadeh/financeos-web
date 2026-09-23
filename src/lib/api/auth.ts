@@ -62,3 +62,11 @@ export function deactivateAccount(token: string, password: string): Promise<{ ok
 export function deleteAllData(token: string, password: string): Promise<{ ok: true }> {
   return apiFetch<{ ok: true }>('/auth/delete-data', { method: 'POST', token, body: { password } });
 }
+
+export function forgotPassword(email: string): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>('/auth/forgot-password', { method: 'POST', body: { email } });
+}
+
+export function resetPassword(token: string, password: string): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>('/auth/reset-password', { method: 'POST', body: { token, password } });
+}

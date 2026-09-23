@@ -61,6 +61,9 @@ export default function LoginPage() {
             <Input type="password" placeholder="Parol" {...register('password')} />
             <ErrorText>{errors.password?.message}</ErrorText>
           </Field>
+          <Link href="/forgot-password" className="self-end text-xs text-zinc-500 underline">
+            Şifrəni unutmusunuz?
+          </Link>
           <ErrorText>{formError}</ErrorText>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Yüklənir...' : 'Daxil ol'}
