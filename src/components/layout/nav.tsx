@@ -14,6 +14,7 @@ const LINKS = [
   { href: '/categories', label: 'Kateqoriyalar' },
   { href: '/budget', label: 'Büdcə' },
   { href: '/goals', label: 'Hədəflər' },
+  { href: '/import', label: 'İdxal' },
   { href: '/settings', label: 'Ayarlar' },
 ];
 

@@ -7,12 +7,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth/auth-context';
 import { createCategory, listCategories, type Category, type CategoryKind } from '@/lib/api/categories';
 import { ApiError } from '@/lib/api/client';
+import { buildCategoryTree, flattenCategoryTree, indentLabel } from '@/lib/categories-tree';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
 import { Field } from '@/components/ui/field';
 import { InfoNote } from '@/components/ui/info-note';
+import { CategoryTreeRow } from './_components/category-tree-row';
 
 const schema = z.object({
   name: z.string().min(1, 'Ad tələb olunur'),
@@ -24,21 +26,15 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function CategoryColumn({ title, kind, categories }: { title: string; kind: CategoryKind; categories: Category[] }) {
-  const items = categories.filter((c) => c.kind === kind);
+  const tree = buildCategoryTree(categories.filter((c) => c.kind === kind));
   return (
     <Card>
       <h2 className="mb-3 text-sm font-medium text-zinc-900">{title}</h2>
-      <ul className="flex flex-col gap-1">
-        {items.map((cat) => (
-          <li key={cat.id} className="flex items-center justify-between text-sm">
-            <span>
-              {cat.icon ? `${cat.icon} ` : ''}
-              {cat.name}
-            </span>
-            {cat.userId === null && <span className="text-xs text-zinc-400">sistem</span>}
-          </li>
+      <ul className="flex flex-col gap-2">
+        {tree.map((node) => (
+          <CategoryTreeRow key={node.id} node={node} tree={tree} allCategories={categories} />
         ))}
-        {items.length === 0 && <li className="text-sm text-zinc-400">Kateqoriya yoxdur.</li>}
+        {tree.length === 0 && <li className="text-sm text-zinc-400">Kateqoriya yoxdur.</li>}
       </ul>
     </Card>
   );
@@ -66,7 +62,9 @@ export default function CategoriesPage() {
     defaultValues: { kind: 'expense', parentId: '' },
   });
   const selectedKind = useWatch({ control, name: 'kind' });
-  const parentOptions = categories.filter((c) => c.kind === selectedKind);
+  const parentOptions = flattenCategoryTree(buildCategoryTree(categories)).filter(
+    (c) => c.kind === selectedKind,
+  );
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) =>
@@ -86,9 +84,8 @@ export default function CategoriesPage() {
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-zinc-900">Kateqoriyalar</h1>
       <InfoNote>
-        Gəlir/xərclərinizi qruplaşdırmaq üçün kateqoriyalar. Sistem tərəfindən əvvəlcədən təyin olunmuş
-        kateqoriyalar (&quot;sistem&quot; etiketli) hər kəs üçün ortaqdır; öz kateqoriyanızı əlavə edərkən istəsəniz
-        mövcud kateqoriyanı valideyn seçə bilərsiniz.
+        Gəlir/xərclərinizi qruplaşdırmaq üçün öz kateqoriyalarınız. İstəsəniz valideyn seçərək alt-kateqoriya
+        yarada, mövcud kateqoriyaları redaktə/silə bilərsiniz.
       </InfoNote>
 
       <Card>
@@ -112,7 +109,7 @@ export default function CategoriesPage() {
               <option value="">Valideyn yoxdur</option>
               {parentOptions.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.name}
+                  {indentLabel(cat.name, cat.depth)}
                 </option>
               ))}
             </select>
