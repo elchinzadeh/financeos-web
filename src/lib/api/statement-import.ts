@@ -4,6 +4,9 @@ export const BANK_PROFILES = [{ id: 'leobank', label: 'Leobank' }] as const;
 
 export type EntryDirection = 'debit' | 'credit';
 
+/** Kateqoriya təklifinin mənbəyi (bax financeos-core/docs/decisions/0021-jev-ai-suggestions.md). */
+export type SuggestionSource = 'rule' | 'internal_transfer' | 'ai';
+
 export interface PreviewRow {
   rowIndex: number;
   occurredAt: string;
@@ -11,6 +14,9 @@ export interface PreviewRow {
   amount: string;
   direction: EntryDirection;
   suggestedCategoryId: string | null;
+  suggestionSource: SuggestionSource | null;
+  /** Yalnız suggestionSource === 'ai' olanda: Jev-in etibar balı (0–1). */
+  suggestionConfidence: number | null;
   isInternalTransfer: boolean;
   isDuplicate: boolean;
   balanceMismatch: boolean;
@@ -33,6 +39,8 @@ export interface CommitRow {
   note?: string;
   include: boolean;
   saveRuleKeyword?: string;
+  /** Verilibsə sətir gəlir/xərc yox, bu hesabla (eyni valyutada) köçürmə kimi yazılır (core ADR-0022). */
+  transferAccountId?: string;
 }
 
 export interface CommitResponse {

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ErrorText } from '@/components/ui/error-text';
 import { InfoNote } from '@/components/ui/info-note';
+import { QuickAddBar } from '@/components/quick-add/quick-add-bar';
 import { EntryForm } from './_components/entry-form';
 import { TransferForm } from './_components/transfer-form';
 import { AdjustForm } from './_components/adjust-form';
@@ -67,6 +68,8 @@ export default function LedgerPage() {
         əməliyyatların siyahısı, hesaba görə filtrlənə bilər. Balans yanlış görünürsə, &quot;Balansı yenidən
         hesabla&quot; düyməsi onu bütün əməliyyatlardan yenidən hesablayır.
       </InfoNote>
+
+      <QuickAddBar />
 
       <Card className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3">

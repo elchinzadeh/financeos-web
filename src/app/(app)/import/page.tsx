@@ -112,6 +112,7 @@ export default function ImportPage() {
         <ReviewTable
           token={token}
           accountId={accountId}
+          accounts={accounts}
           categories={categoriesQuery.data ?? []}
           preview={preview}
           onDone={() => {

@@ -29,14 +29,14 @@ export function listEntries(token: string, accountId?: string): Promise<LedgerEn
 
 export function recordIncome(
   token: string,
-  input: { accountId: string; amount: string; categoryId?: string; note?: string },
+  input: { accountId: string; amount: string; categoryId?: string; note?: string; occurredAt?: string },
 ): Promise<LedgerEntry> {
   return apiFetch<LedgerEntry>('/ledger/record-income', { method: 'POST', token, body: input });
 }
 
 export function recordExpense(
   token: string,
-  input: { accountId: string; amount: string; categoryId?: string; note?: string },
+  input: { accountId: string; amount: string; categoryId?: string; note?: string; occurredAt?: string },
 ): Promise<LedgerEntry> {
   return apiFetch<LedgerEntry>('/ledger/record-expense', { method: 'POST', token, body: input });
 }

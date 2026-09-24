@@ -6,8 +6,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clsx } from 'clsx';
-import { commitStatement, type CommitResponse, type EntryDirection, type PreviewResponse } from '@/lib/api/statement-import';
+import {
+  commitStatement,
+  type CommitResponse,
+  type EntryDirection,
+  type PreviewResponse,
+  type SuggestionSource,
+} from '@/lib/api/statement-import';
 import { ApiError } from '@/lib/api/client';
+import type { AccountWithBalance } from '@/lib/api/accounts';
 import type { Category } from '@/lib/api/categories';
 import { buildCategoryTree, flattenCategoryTree, indentLabel } from '@/lib/categories-tree';
 import { Button } from '@/components/ui/button';
@@ -25,10 +32,15 @@ const schema = z.object({
       direction: z.enum(['debit', 'credit']),
       include: z.boolean(),
       categoryId: z.string(),
+      /** Boş deyilsə sətir gəlir/xərc yox, bu hesabla köçürmə kimi yazılır. */
+      transferAccountId: z.string(),
       note: z.string(),
     }),
   ),
 });
+
+/** Göndərmədən əvvəl yoxlama xətası (istifadəçiyə olduğu kimi göstərilir). */
+class ReviewValidationError extends Error {}
 
 type FormValues = z.infer<typeof schema>;
 
@@ -37,7 +49,9 @@ interface Group {
   description: string;
   direction: EntryDirection;
   indices: number[];
-  hasSuggestion: boolean;
+  /** Qrupun ilk sətrindəki təklifin mənbəyi; təklif yoxdursa null. */
+  suggestionSource: SuggestionSource | null;
+  aiConfidence: number | null;
   duplicateCount: number;
   internalTransferCount: number;
   balanceMismatchCount: number;
@@ -61,7 +75,8 @@ function buildGroups(preview: PreviewResponse): Group[] {
         description: row.description.trim(),
         direction: row.direction,
         indices: [index],
-        hasSuggestion: row.suggestedCategoryId !== null,
+        suggestionSource: row.suggestionSource,
+        aiConfidence: row.suggestionConfidence,
         duplicateCount: row.isDuplicate ? 1 : 0,
         internalTransferCount: row.isInternalTransfer ? 1 : 0,
         balanceMismatchCount: row.balanceMismatch ? 1 : 0,
@@ -72,20 +87,48 @@ function buildGroups(preview: PreviewResponse): Group[] {
   return [...byKey.values()].sort((a, b) => b.indices.length - a.indices.length);
 }
 
-function Badge({ tone, children }: { tone: 'amber' | 'purple' | 'red'; children: string }) {
+/** Qayda və ya daxili köçürmə təklifi dəqiqdir; "xatırla" yalnız təklifsiz və ya AI təklifli qruplarda mənalıdır. */
+function canRemember(group: Group): boolean {
+  return group.suggestionSource === null || group.suggestionSource === 'ai';
+}
+
+function Badge({
+  tone,
+  title,
+  children,
+}: {
+  tone: 'amber' | 'purple' | 'red' | 'blue';
+  title?: string;
+  children: string;
+}) {
   const toneClasses = {
     amber: 'bg-amber-100 text-amber-800',
     purple: 'bg-purple-100 text-purple-800',
     red: 'bg-red-100 text-red-800',
+    blue: 'bg-blue-100 text-blue-800',
   } as const;
   return (
-    <span className={clsx('rounded px-1.5 py-0.5 text-xs font-medium', toneClasses[tone])}>{children}</span>
+    <span title={title} className={clsx('rounded px-1.5 py-0.5 text-xs font-medium', toneClasses[tone])}>
+      {children}
+    </span>
   );
 }
 
 function GroupBadges({ group }: { group: Group }) {
   return (
     <div className="flex flex-wrap gap-1">
+      {group.suggestionSource === 'ai' && (
+        <Badge
+          tone="blue"
+          title={
+            group.aiConfidence !== null
+              ? `AI təklifidir (etibar ${Math.round(group.aiConfidence * 100)}%) — yoxlayın`
+              : 'AI təklifidir — yoxlayın'
+          }
+        >
+          AI təklifi
+        </Badge>
+      )}
       {group.duplicateCount > 0 && (
         <Badge tone="amber">{`Dublikat${group.duplicateCount > 1 ? ` ×${group.duplicateCount}` : ''}`}</Badge>
       )}
@@ -109,6 +152,9 @@ function GroupRow({
   expanded,
   onToggleExpand,
   token,
+  transferMode,
+  onToggleTransfer,
+  transferTargets,
 }: {
   group: Group;
   control: Control<FormValues>;
@@ -121,9 +167,15 @@ function GroupRow({
   expanded: boolean;
   onToggleExpand: () => void;
   token: string;
+  /** Qrup gəlir/xərc kimi yox, hesablar arası köçürmə kimi idxal olunur. */
+  transferMode: boolean;
+  onToggleTransfer: (value: boolean) => void;
+  /** Köçürmə üçün uyğun hesablar: idxal hesabından fərqli, eyni valyutalı. */
+  transferTargets: AccountWithBalance[];
 }) {
   const firstIndex = group.indices[0];
   const categoryId = useWatch({ control, name: `rows.${firstIndex}.categoryId` });
+  const transferAccountId = useWatch({ control, name: `rows.${firstIndex}.transferAccountId` });
   const includeValues = useWatch({ control, name: group.indices.map((i) => `rows.${i}.include` as const) });
   const allIncluded = includeValues.every(Boolean);
   const noneIncluded = includeValues.every((v) => !v);
@@ -138,6 +190,24 @@ function GroupRow({
 
   const kind = group.direction === 'debit' ? 'expense' : 'income';
   const filteredCategories = flattenCategoryTree(buildCategoryTree(categories.filter((c) => c.kind === kind)));
+  // Hesaba qayıdan pul (credit) xərcin geri qaytarılması ola bilər: xərc kateqoriyası seçmək olar, həmin
+  // kateqoriyanın xərcini azaldır (core ADR-0022).
+  const refundCategories =
+    group.direction === 'credit'
+      ? flattenCategoryTree(buildCategoryTree(categories.filter((c) => c.kind === 'expense')))
+      : [];
+
+  function changeMode(nextTransfer: boolean) {
+    group.indices.forEach((i) => {
+      setValue(`rows.${i}.categoryId`, '');
+      setValue(`rows.${i}.transferAccountId`, '');
+    });
+    onToggleTransfer(nextTransfer);
+  }
+
+  function handleTransferAccountChange(value: string) {
+    group.indices.forEach((i) => setValue(`rows.${i}.transferAccountId`, value));
+  }
 
   function toggleGroup() {
     const next = !allIncluded;
@@ -171,27 +241,81 @@ function GroupRow({
           </span>
         </td>
         <td className="px-3 py-2">
-          <div className="flex items-center gap-1">
+          <div className="flex flex-col items-start gap-1.5">
             <select
-              className="rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
-              value={categoryId ?? ''}
-              onChange={handleCategoryChange}
+              aria-label="Əməliyyatın növü"
+              className="rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-600"
+              value={transferMode ? 'transfer' : 'normal'}
+              onChange={(e) => changeMode(e.target.value === 'transfer')}
             >
-              <option value="">Kateqoriyasız</option>
-              {filteredCategories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {indentLabel(c.name, c.depth)}
-                </option>
-              ))}
+              <option value="normal">{group.direction === 'debit' ? 'Xərc' : 'Gəlir'}</option>
+              <option value="transfer">Köçürmə (hesablar arası)</option>
             </select>
-            <button
-              type="button"
-              onClick={() => setIsCreatingCategory(true)}
-              className="text-xs text-zinc-500 hover:text-zinc-900"
-              title="Yeni kateqoriya yarat"
-            >
-              + Yeni
-            </button>
+            {transferMode ? (
+              <div className="flex flex-col gap-1">
+                <select
+                  aria-label={group.direction === 'debit' ? 'Hansı hesaba köçürülüb' : 'Hansı hesabdan köçürülüb'}
+                  className={clsx(
+                    'rounded-md border px-2 py-1.5 text-sm',
+                    transferAccountId ? 'border-zinc-300' : 'border-amber-400 bg-amber-50',
+                  )}
+                  value={transferAccountId ?? ''}
+                  onChange={(e) => handleTransferAccountChange(e.target.value)}
+                >
+                  <option value="">{group.direction === 'debit' ? 'Hansı hesaba?' : 'Hansı hesabdan?'}</option>
+                  {transferTargets.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} ({acc.currency})
+                    </option>
+                  ))}
+                </select>
+                {transferTargets.length === 0 && (
+                  <p className="text-xs text-amber-700">Eyni valyutada başqa hesabınız yoxdur.</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <select
+                  className="rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
+                  value={categoryId ?? ''}
+                  onChange={handleCategoryChange}
+                >
+                  <option value="">Kateqoriyasız</option>
+                  {refundCategories.length > 0 ? (
+                    <>
+                      <optgroup label="Gəlir kateqoriyaları">
+                        {filteredCategories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {indentLabel(c.name, c.depth)}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Xərcin geri qaytarılması (xərc kateqoriyaları)">
+                        {refundCategories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {indentLabel(c.name, c.depth)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </>
+                  ) : (
+                    filteredCategories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {indentLabel(c.name, c.depth)}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingCategory(true)}
+                  className="text-xs text-zinc-500 hover:text-zinc-900"
+                  title="Yeni kateqoriya yarat"
+                >
+                  + Yeni
+                </button>
+              </div>
+            )}
           </div>
           {isCreatingCategory && (
             <CreateCategoryModal
@@ -207,7 +331,7 @@ function GroupRow({
         </td>
         <td className="px-3 py-2">
           <div className="flex flex-col items-start gap-1">
-            {!group.hasSuggestion && (
+            {canRemember(group) && !transferMode && (
               <label className="flex items-center gap-1 text-xs text-zinc-600">
                 <input
                   type="checkbox"
@@ -252,12 +376,14 @@ function GroupRow({
 export function ReviewTable({
   token,
   accountId,
+  accounts,
   categories,
   preview,
   onDone,
 }: {
   token: string;
   accountId: string;
+  accounts: AccountWithBalance[];
   categories: Category[];
   preview: PreviewResponse;
   onDone: () => void;
@@ -265,10 +391,20 @@ export function ReviewTable({
   const queryClient = useQueryClient();
   const groups = useMemo(() => buildGroups(preview), [preview]);
   const firstIndexToGroup = useMemo(() => new Map(groups.map((g) => [g.indices[0], g])), [groups]);
-
-  const [remember, setRemember] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(groups.map((g) => [g.key, !g.hasSuggestion])),
+  const groupKeyByIndex = useMemo(
+    () => new Map(groups.flatMap((g) => g.indices.map((index) => [index, g.key] as const))),
+    [groups],
   );
+
+  // Köçürmə transfer məbləğini mənbə hesabın valyutasında yazır, ona görə yalnız eyni valyutalı hesablar təklif olunur.
+  const importAccount = accounts.find((a) => a.id === accountId);
+  const transferTargets = accounts.filter((a) => a.id !== accountId && a.currency === importAccount?.currency);
+
+  // "Gələcək üçün xatırla" hamısı üçün default açıqdır (istifadəçi qərarı); AI təklifi qəbul edilərsə də pulsuz qaydaya çevrilir.
+  const [remember, setRemember] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(groups.map((g) => [g.key, canRemember(g)])),
+  );
+  const [transferGroups, setTransferGroups] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const {
@@ -287,30 +423,43 @@ export function ReviewTable({
         direction: row.direction,
         include: !row.isDuplicate,
         categoryId: row.suggestedCategoryId ?? '',
+        transferAccountId: '',
         note: row.description,
       })),
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) =>
-      commitStatement(token, {
+    mutationFn: (values: FormValues) => {
+      const missingTransferAccount = values.rows.some(
+        (row, index) =>
+          row.include && transferGroups.has(groupKeyByIndex.get(index) ?? '') && !row.transferAccountId,
+      );
+      if (missingTransferAccount) {
+        return Promise.reject(new ReviewValidationError('Köçürmə kimi işarələnən sətirlər üçün hesab seçin.'));
+      }
+
+      return commitStatement(token, {
         accountId,
         rows: values.rows.map((row, index) => {
           const group = firstIndexToGroup.get(index);
-          const saveRuleKeyword = group && remember[group.key] && row.categoryId ? group.description : undefined;
+          const isTransfer = Boolean(row.transferAccountId);
+          const saveRuleKeyword =
+            group && !isTransfer && remember[group.key] && row.categoryId ? group.description : undefined;
           return {
             fingerprint: row.fingerprint,
             occurredAt: row.occurredAt,
             amount: row.amount,
             direction: row.direction,
-            categoryId: row.categoryId || undefined,
+            categoryId: isTransfer ? undefined : row.categoryId || undefined,
+            transferAccountId: row.transferAccountId || undefined,
             note: row.note || undefined,
             include: row.include,
             saveRuleKeyword,
           };
         }),
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ledger-entries'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
@@ -391,6 +540,16 @@ export function ReviewTable({
                     expanded={expanded.has(group.key)}
                     onToggleExpand={() => toggleExpand(group.key)}
                     token={token}
+                    transferMode={transferGroups.has(group.key)}
+                    onToggleTransfer={(value) =>
+                      setTransferGroups((prev) => {
+                        const next = new Set(prev);
+                        if (value) next.add(group.key);
+                        else next.delete(group.key);
+                        return next;
+                      })
+                    }
+                    transferTargets={transferTargets}
                   />
                 ))}
               </tbody>
@@ -406,7 +565,11 @@ export function ReviewTable({
             </Button>
           </div>
           {mutation.isError && (
-            <ErrorText>{mutation.error instanceof ApiError ? mutation.error.message : 'Xəta baş verdi'}</ErrorText>
+            <ErrorText>
+              {mutation.error instanceof ApiError || mutation.error instanceof ReviewValidationError
+                ? mutation.error.message
+                : 'Xəta baş verdi'}
+            </ErrorText>
           )}
         </form>
       )}
